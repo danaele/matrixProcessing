@@ -105,7 +105,7 @@ std::vector< std::vector<float> >read_probtrackx2_matrix( std::string inputMatri
 template<typename T>
 void print_matrix(std::vector< std::vector<T> > matrix)
 {
-    std::cout<<"Matrix :"<<std::endl;
+    std::cout<<"Matrix : "<<std::endl;
     //Print matrix
     typename std::vector< std::vector <T> >::const_iterator row_it, row_end;
 
@@ -227,6 +227,79 @@ std::vector< std::vector<float> >  normalized_matrix( std::vector< std::vector<f
 
 }
 
+std::vector< std::vector<float> > extractConnectivityInformations ( std::vector< std::vector<float> > matrix_norm )
+{
+    //Find max
+    std::vector< std::vector <float> > connectivity;
+    std::vector< std::vector <float> >::const_iterator cit,cend;
+
+    std::vector<float>::const_iterator rit,rend;
+    int nb_connection = 0 ;
+
+    int column=0;
+    int nb_lines=matrix_norm.size();
+    for(int i=0 ; i < nb_lines ; i++)
+    {
+        std::vector<float> rowConnectivity;
+        column=i+1;
+        while(column<nb_lines)
+        {
+            if(matrix_norm[i][column] > matrix_norm[column][i])
+            {
+                rowConnectivity.push_back(matrix_norm[i][column]);
+            }
+            else if(matrix_norm[i][column] == 0 && matrix_norm[column][i] ==0)
+            {
+                rowConnectivity.push_back(matrix_norm[i][column]);
+            }
+            else
+            {
+                rowConnectivity.push_back(matrix_norm[column][i]);
+            }
+            column++;
+            nb_connection ++ ;
+        }
+        connectivity.push_back(rowConnectivity);
+    }
+        return connectivity ;
+}
+
+void write_jsonFile_D3(std::vector< std::vector<float> > connectivity )
+{
+    std::string filename="connectivity.json";
+    std::ofstream outputFile ;
+    std::vector< std::vector <float> >::const_iterator row_it, row_end;
+
+    outputFile.open( filename.c_str() , std::ios::out ) ;
+    if( outputFile.good() )
+    {
+        outputFile << "[\n";
+
+        for(row_it=connectivity.begin() , row_end=connectivity.end() ; row_it!=row_end ; ++row_it)
+        {
+            std::vector< float > row = *row_it;
+            std::vector <float>::const_iterator column_it, column_end;
+            std::string line="";
+
+            for(column_it=row.begin() , column_end=row.end() ; column_it!=column_end ; ++column_it)
+            {
+                float val = *column_it;
+                line += FloatToString(val);
+                if(column_it != column_end-1)
+                {
+                    line += " ";
+                }
+            }
+            line += "\n";
+            outputFile << line ;
+        }
+
+        outputFile << "]";
+    }
+    outputFile.close() ;
+
+}
+
 
 
 int main ( int argc, char *argv[] )
@@ -235,19 +308,32 @@ int main ( int argc, char *argv[] )
     PARSE_ARGS;
 
     std::vector< std::vector <float> > matrix;
+
+    //Read probtrackx2 matrix
     matrix = read_probtrackx2_matrix(inputMatrixTextFile);
     if(matrix.empty() == true)
     {
         std::cout<<"Error - verified matrix dimension "<<std::endl;
     }
-    print_matrix(matrix);
+    //print_matrix(matrix);
 
-    std::vector< std::vector <float> > matrix_num;
+
+    //Normalize connectivity matrix
+    std::vector< std::vector <float> > matrix_norm;
     //Normalize matrix
-    matrix_num=normalized_matrix(matrix);
-    print_matrix(matrix_num);
+    matrix_norm=normalized_matrix(matrix);
+    //print_matrix(matrix_num);
 
-    write_matrixFile(matrix_num);
+    //Write normalized matrix in a text file
+    write_matrixFile(matrix_norm);
 
+    //Extract connectivity information to plot in circle
+    std::vector< std::vector <float> > connectivity_informations;
+    connectivity_informations = extractConnectivityInformations(matrix_norm);
+    std::cout<<"CONNECTIVITY MATRIX"<<std::endl;
+    print_matrix(connectivity_informations);
+
+    //Create json file to D3
+    write_jsonFile_D3(connectivity_informations);
     return EXIT_FAILURE;
 }
