@@ -136,13 +136,13 @@ void print_vector( std::vector<T>  vector)
     }
 }
 
-void write_matrixFile(std::vector< std::vector<float> >  matrix)
+void write_matrixFile(std::vector< std::vector<float> >  matrix , std::string filename)
 {
-    std::string filename="matrix_normalized.txt";
+    std::string filenameOutput=filename;
     std::ofstream outputFile ;
     std::vector< std::vector <float> >::const_iterator row_it, row_end;
 
-    outputFile.open( filename.c_str() , std::ios::out ) ;
+    outputFile.open( filenameOutput.c_str() , std::ios::out ) ;
     if( outputFile.good() )
     {
         for(row_it=matrix.begin() , row_end=matrix.end() ; row_it!=row_end ; ++row_it)
@@ -223,82 +223,112 @@ std::vector< std::vector<float> >  normalized_matrix( std::vector< std::vector<f
 
     std::cout<<"waytotal_size : "<<waytotal.size()<<std::endl;
     return mat_num;
-
-
 }
 
-std::vector< std::vector<float> > extractConnectivityInformations ( std::vector< std::vector<float> > matrix_norm )
+std::vector< std::vector<float> > maximumConnectivity ( std::vector< std::vector<float> > matrix )
 {
     //Find max
-    std::vector< std::vector <float> > connectivity;
-    std::vector< std::vector <float> >::const_iterator cit,cend;
+    std::vector< std::vector <float> > maxConnectivity;
+    int nb_lines=matrix.size();
 
-    std::vector<float>::const_iterator rit,rend;
-    int nb_connection = 0 ;
-
-    int column=0;
-    int nb_lines=matrix_norm.size();
-    for(int i=0 ; i < nb_lines ; i++)
+    for(int i = 0 ; i < nb_lines ; i++)
     {
-        std::vector<float> rowConnectivity;
-        column=i+1;
-        while(column<nb_lines)
+        std::vector<float> rows;
+        for(int j = 0 ; j <nb_lines ; j++)
         {
-            if(matrix_norm[i][column] > matrix_norm[column][i])
+            if(i==j)
             {
-                rowConnectivity.push_back(matrix_norm[i][column]);
+                rows.push_back(0);
             }
-            else if(matrix_norm[i][column] == 0 && matrix_norm[column][i] ==0)
+            else if (j>i)
             {
-                rowConnectivity.push_back(matrix_norm[i][column]);
+                if( matrix[i][j] > matrix[j][i] )
+                {
+                rows.push_back(matrix[i][j]);
+                }
+                else
+                {
+                rows.push_back(matrix[j][i]);
+                }
             }
             else
             {
-                rowConnectivity.push_back(matrix_norm[column][i]);
+                rows.push_back(0);
             }
-            column++;
-            nb_connection ++ ;
         }
-        connectivity.push_back(rowConnectivity);
+        maxConnectivity.push_back(rows);
     }
-        return connectivity ;
+        return maxConnectivity ;
 }
 
-void write_jsonFile_D3(std::vector< std::vector<float> > connectivity )
+std::vector< std::vector<float> > minimumConnectivity ( std::vector< std::vector<float> > matrix )
 {
-    std::string filename="connectivity.json";
-    std::ofstream outputFile ;
-    std::vector< std::vector <float> >::const_iterator row_it, row_end;
+    //Find min
+    std::vector< std::vector <float> > minConnectivity;
 
-    outputFile.open( filename.c_str() , std::ios::out ) ;
-    if( outputFile.good() )
+    int nb_lines=matrix.size();
+
+    for(int i = 0 ; i < nb_lines ; i++)
     {
-        outputFile << "[\n";
-
-        for(row_it=connectivity.begin() , row_end=connectivity.end() ; row_it!=row_end ; ++row_it)
+        std::vector<float> rows;
+        for(int j = 0 ; j <nb_lines ; j++)
         {
-            std::vector< float > row = *row_it;
-            std::vector <float>::const_iterator column_it, column_end;
-            std::string line="";
-
-            for(column_it=row.begin() , column_end=row.end() ; column_it!=column_end ; ++column_it)
+            if(i==j)
             {
-                float val = *column_it;
-                line += FloatToString(val);
-                if(column_it != column_end-1)
+                rows.push_back(0);
+            }
+            else if (j>i)
+            {
+                if( matrix[i][j] < matrix[j][i] )
                 {
-                    line += " ";
+                rows.push_back(matrix[i][j]);
+                }
+                else
+                {
+                rows.push_back(matrix[j][i]);
                 }
             }
-            line += "\n";
-            outputFile << line ;
+            else
+            {
+                rows.push_back(0);
+            }
         }
-
-        outputFile << "]";
+        minConnectivity.push_back(rows);
     }
-    outputFile.close() ;
-
+        return minConnectivity ;
 }
+
+std::vector< std::vector<float> > averageConnectivity ( std::vector< std::vector<float> > matrix )
+{
+    //Find min
+    std::vector< std::vector <float> > minConnectivity;
+    int nb_lines=matrix.size();
+
+    for(int i = 0 ; i < nb_lines ; i++)
+    {
+        std::vector<float> rows;
+        for(int j = 0 ; j <nb_lines ; j++)
+        {
+            if(i==j)
+            {
+                rows.push_back(0);
+            }
+            else if (j>i)
+            {
+                float average;
+                average = (matrix[i][j] + matrix[j][i]) / 2 ;
+                rows.push_back(average);
+            }
+            else
+            {
+                rows.push_back(0);
+            }
+        }
+        minConnectivity.push_back(rows);
+    }
+        return minConnectivity ;
+}
+
 
 
 
@@ -307,33 +337,82 @@ int main ( int argc, char *argv[] )
 
     PARSE_ARGS;
 
-    std::vector< std::vector <float> > matrix;
-
-    //Read probtrackx2 matrix
-    matrix = read_probtrackx2_matrix(inputMatrixTextFile);
-    if(matrix.empty() == true)
+    if(normalized == 0 && triangularMatrixMaximumValue == 0 && triangularMatrixMinimumValue == 0 && triangularMatrixAverageValue == 0)
     {
-        std::cout<<"Error - verified matrix dimension "<<std::endl;
+        std::cout << "Nothing to do. Specified at leat one action (--normalized or --max or --min or --average )" << std::endl ;
+        return EXIT_FAILURE ;
     }
-    //print_matrix(matrix);
+    else
+    {
+        std::vector< std::vector <float> > matrix;
+        matrix = read_probtrackx2_matrix(inputMatrixTextFile);
+        if(matrix.empty() == true)
+        {
+        std::cout<<"Error - verified matrix dimension "<<std::endl;
+        return EXIT_FAILURE;
+        }
+        if( normalized == 1 )
+        {
+            std::vector< std::vector <float> > matrix_norm;
+            matrix_norm=normalized_matrix(matrix);
+            write_matrixFile(matrix_norm,outputNormalizedFilename);
+        }
+        if ( useMatrixNormalized == 1 && (triangularMatrixMaximumValue == 1 || triangularMatrixMinimumValue == 1 || triangularMatrixAverageValue == 1))
+        {
+            std::vector< std::vector <float> > matrix_norm;
+            matrix_norm=normalized_matrix(matrix);
 
+            if(triangularMatrixMaximumValue == 1)
+            {
+                std::vector< std::vector <float> > matrixMax;
+                matrixMax = maximumConnectivity(matrix_norm);
+                std::string filename = "Maximum_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixMax,filename);
 
-    //Normalize connectivity matrix
-    std::vector< std::vector <float> > matrix_norm;
-    //Normalize matrix
-    matrix_norm=normalized_matrix(matrix);
-    //print_matrix(matrix_num);
+            }
+            if(triangularMatrixMinimumValue == 1)
+            {
+                std::vector< std::vector <float> > matrixMin;
+                matrixMin = minimumConnectivity(matrix_norm);
+                std::string filename = "Minimum_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixMin,filename);
 
-    //Write normalized matrix in a text file
-    write_matrixFile(matrix_norm);
+            }
+            if(triangularMatrixAverageValue == 1)
+            {
+                std::vector< std::vector <float> > matrixAverage;
+                matrixAverage = averageConnectivity(matrix_norm);
+                std::string filename = "Average_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixAverage,filename);
+            }
+        }
+        else if (useMatrixNormalized == 0 && (triangularMatrixMaximumValue == 1 || triangularMatrixMinimumValue == 1 || triangularMatrixAverageValue == 1))
+        {
+            if(triangularMatrixMaximumValue == 1)
+            {
+                std::vector< std::vector <float> > matrixMax;
+                matrixMax = maximumConnectivity(matrix);
+                std::string filename = "Maximum_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixMax,filename);
 
-    //Extract connectivity information to plot in circle
-    std::vector< std::vector <float> > connectivity_informations;
-    connectivity_informations = extractConnectivityInformations(matrix_norm);
-    std::cout<<"CONNECTIVITY MATRIX"<<std::endl;
-    print_matrix(connectivity_informations);
+            }
+            if(triangularMatrixMinimumValue == 1)
+            {
+                std::vector< std::vector <float> > matrixMin;
+                matrixMin = minimumConnectivity(matrix);
+                std::string filename = "Minimun_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixMin,filename);
 
-    //Create json file to D3
-    write_jsonFile_D3(connectivity_informations);
-    return EXIT_FAILURE;
+            }
+            if(triangularMatrixAverageValue == 1)
+            {
+                std::vector< std::vector <float> > matrixAverage;
+                matrixAverage = averageConnectivity(matrix);
+                std::string filename = "Average_" + outputTriangularMatrixFilename;
+                write_matrixFile(matrixAverage,filename);
+            }
+        }
+    }
+    return EXIT_SUCCESS;
+
 }

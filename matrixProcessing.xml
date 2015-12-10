@@ -6,21 +6,77 @@
 
   <description>readMatrixTextFile</description>
   <version>1.0</version>
-  <contributor>Danaele Puechmaille, Juan Prieto Carlosm Martin Styner</contributor> 
+  <contributor>Danaele Puechmaille, Juan Prieto Carlos, Martin Styner</contributor> 
   <acknowledgements><![CDATA[This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grants U01 MH070890 - U54 HD079124 - R01 MH091351.]]></acknowledgements> 
 
   <parameters>
 	  <label>IO</label>
 	  <description>Input/Output parameters</description>  
-  
-    <string>
+
+	<string>
+	    <name>outputTriangularMatrixFilename</name>
+		  <label>outputTriangularMatrixFilename</label>
+		  <default>triangularMatrix.txt</default>
+		  <longflag>outputTriangularMatrixFilename</longflag>
+		  <description>Specified a basename for output file of triangular matrix</description>
+	</string> 
+
+	<boolean>
+      <name>triangularMatrixAverageValue</name>
+      <longflag>average</longflag>
+      <label>triangularMatrixAverageValue</label>
+      <default>false</default>
+      <description>Create a triangular matrix with averages of connectivity</description>
+   </boolean>
+
+
+	<boolean>
+      <name>triangularMatrixMinimumValue</name>
+      <longflag>min</longflag>
+      <label>triangularMatrixMinimumValue</label>
+      <default>false</default>
+      <description>Create a triangular matrix with minimums of connectivity</description>
+   </boolean>
+
+	<boolean>
+      <name>triangularMatrixMaximumValue</name>
+      <longflag>max</longflag>
+      <label>triangularMatrixMaximumValue</label>
+      <default>false</default>
+      <description>Create a triangular matrix with maximums of connectivity</description>
+   </boolean>
+
+   <boolean>
+      <name>useMatrixNormalized</name>
+      <longflag>useMatrixNormalized</longflag>
+      <label>useMatrixNormalized</label>
+      <default>true</default>
+      <description>Use the matrix normalized to create each triangular matrix  (maximum/mininum/average of connectivity)</description>
+   </boolean>
+
+	<string>
+	    <name>outputNormalizedFilename</name>
+		  <label>outputNormalizedFilename</label>
+		  <default>matrix_normalized.txt</default>
+		  <longflag>outputNormalizedFilename</longflag>
+		  <description>Specified a basename for output file of the normalized matrix</description>
+	</string> 
+
+	<boolean>
+      <name>normalized</name>
+      <longflag>normalized</longflag>
+      <label>normalized</label>
+      <default>false</default>
+      <description>Normalized the matrix</description>
+   </boolean>
+
+   <string>
 	    <name>inputMatrixTextFile</name>
 		  <label>inputMatrixTextFile</label>
-		  <flag>i</flag>
+		  <flag>m</flag>
 		  <longflag>inputMatrixTextFile</longflag>
 		  <description>inputMatrixTextFile </description>
-		</string> 
-
+	</string> 
 
   </parameters>
 
