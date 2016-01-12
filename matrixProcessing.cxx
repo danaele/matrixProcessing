@@ -165,6 +165,7 @@ void write_matrixFile(std::vector< std::vector<float> >  matrix , std::string fi
         }
     }
     outputFile.close() ;
+    std::cout<<"File created : "<<filename<<std::endl;
 
 }
 
@@ -366,7 +367,7 @@ int main ( int argc, char *argv[] )
             {
                 std::vector< std::vector <float> > matrixMax;
                 matrixMax = maximumConnectivity(matrix_norm);
-                std::string filename = "Maximum_" + outputTriangularMatrixFilename;
+                std::string filename = "Maximum_Normalized_" + outputTriangularMatrixFilename;
                 write_matrixFile(matrixMax,filename);
 
             }
@@ -374,7 +375,7 @@ int main ( int argc, char *argv[] )
             {
                 std::vector< std::vector <float> > matrixMin;
                 matrixMin = minimumConnectivity(matrix_norm);
-                std::string filename = "Minimum_" + outputTriangularMatrixFilename;
+                std::string filename = "Minimum_Normalized_" + outputTriangularMatrixFilename;
                 write_matrixFile(matrixMin,filename);
 
             }
@@ -382,7 +383,7 @@ int main ( int argc, char *argv[] )
             {
                 std::vector< std::vector <float> > matrixAverage;
                 matrixAverage = averageConnectivity(matrix_norm);
-                std::string filename = "Average_" + outputTriangularMatrixFilename;
+                std::string filename = "Average_Normalized_" + outputTriangularMatrixFilename;
                 write_matrixFile(matrixAverage,filename);
             }
         }
